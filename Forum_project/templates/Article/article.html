@@ -1,0 +1,424 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}
+    <title>Article</title>
+{% endblock %}
+
+{% block CSS %}
+<style>
+    .imgBtn {
+        float: left;
+        margin-top: 10px;
+        margin-left: 15px;
+        background: url("{% static 'img/face/imgs.png' %}");
+        background-repeat: no-repeat;
+        background-position: 0 -13px;
+        height: 18px;
+        width: 20px;
+        cursor: pointer
+    }
+    #article_body img{
+        background-size: contain;
+        max-width: 100%;
+        height: auto;
+    }
+    .w-e-text-container {
+        width: 83%!important;
+        height: 45px !important;
+        float: left !important;
+        margin-top: 0!important;
+        margin-left: 0!important;
+        border-top-width: 1px!important;
+        border-left: white!important;
+        border-top: grey!important;
+        font-size: 16px!important;
+    }
+    .w-e-toolbar{
+        width: 10%!important;
+        float: left!important;
+        height: 45px !important;
+    }
+    .w-e-toolbar .w-e-menu{
+        padding-left: 4px!important;
+        padding-top: 10px!important;
+    }
+</style>
+{% endblock %}
+
+{% block main %}
+    <!-- 警告栏 -->
+    {% if msg %}
+    <div class="alert alert-danger alert-dismissable" style="text-align: center;position: fixed;top:50px;width: 100%;z-index: 999;">
+	    <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
+	    {{ msg }}
+    </div>
+    {% endif %}
+
+    <div class="container">
+        <div class="row" style="margin-top: 50px;">
+            <div class="col-md-9" style="height: 100%;min-height:706px;background-color: white;margin-left: 143px;">
+                <div id="article_title" style="text-align: center;">
+                    <h3><b>{{ article.title }}</b></h3>
+                    <div style="color: gray;">{{ article.time|date:"Y年m月d日" }}</div>
+                </div>
+                <div id="article_desc" style="margin-top: 30px;">
+                    <a href="{% url 'personal_show' article.author.id %}" style="color: black;">
+                        <img src="{{ article.author.avatar.url }}" width="50px;" height="50px;" style="float: left;border-radius: 25px;" >
+                        <div style="float: left; margin-left: 15px;" >
+                            <div style="font-weight: bold;font-size: 18px;">{{ article.author.username }}</div>
+                            <p style="color: gray;margin-top: 0;">{{ article.author.desc }}</p>
+                        </div>
+                    </a>
+                    <div style="float:right;color: grey;margin-right: 10px;font-size: 17px;margin-top: 18px;"><a href="{% url 'article_comments' article.id %}" style="text-decoration: none;color: grey;"><span class="glyphicon glyphicon-list"></span>&nbsp;&nbsp;{{ article.comment_num }}&nbsp;评论</a></div>
+                    <div id="is_like_{{ article.id }}" onclick="is_like({{ article.id }})" style="margin-top: 18px;font-size:17px;float:right;color: grey;margin-right: 20px;cursor: pointer;"><span class="glyphicon glyphicon-heart-empty"></span>&nbsp;&nbsp;<span id="like_num">{{ article.like_num }}</span>&nbsp;喜欢</div>
+                    <div id="like_{{ article.id }}" onclick="no_like({{ article.id }})" style="margin-top: 18px;font-size:17px;float:right;color: grey;margin-right: 20px;display: none;cursor: pointer;"><span class="glyphicon glyphicon-heart"></span>&nbsp;&nbsp;<span id="like_num">{{ article.like_num|add:1 }}</span>&nbsp;喜欢</div>
+                    <div style="clear: both"></div>
+                </div>
+                <hr style="margin-top: 0;">
+                <div id="article_body">
+                    {% autoescape off %}
+                    {{ article.content }}
+                    {% endautoescape %}
+                </div>
+                <!-- 评论列表 -->
+                <hr id="to_position" style="margin-top: 50px;margin-bottom: 50px;">
+                {% if request.session.have_comments %}
+                    <div id="comments">
+                        <div id="comments_head" style="width: 100%;height:40px;background-color: #b2b2b2;">
+                            <div style="font-size: 18px;color: white;margin-left: 20px;padding-top: 10px;float: left;"><span class="glyphicon glyphicon-list"></span>&nbsp;&nbsp;{{ article.comment_num }}条评论</div>
+                            <div id="comment_time" style="font-size: 18px;color: white;margin-right: 20px;padding-top: 10px;float: right;display: none;"><a href="{% url 'comment_sort' article.id %}" style="text-decoration: none;color: white;"><span class="glyphicon glyphicon-sort-by-attributes-alt"></span>&nbsp;&nbsp;按时间顺序排序</a></div>
+                            <div id="comment_hot" style="font-size: 18px;color: white;margin-right: 20px;padding-top: 10px;float: right;display: none;"><a href="{% url 'comment_sort' article.id %}" style="text-decoration: none;color: white;"><span class="glyphicon glyphicon-sort-by-attributes-alt"></span>&nbsp;&nbsp;按热度排序</a></div>
+                        </div>
+                        {% for sg_comment in comments %}
+                            {% if  sg_comment.pid_id %}
+                            {% else %}
+                                <div id="comment_{{ sg_comment.id }}">
+                                    <div id="comment_head">
+                                        <img src="{{ sg_comment.user.avatar.url }}" width="50px;" height="50px;" style="float: left;border-radius: 25px;" >
+                                        <div style="float: left; margin-left: 5px;" >
+                                            <div style="font-size: 17px;margin-top: 15px;">
+                                                {{ sg_comment.user.username }}
+                                                {% if sg_comment.user.id == article.author.id %}
+                                                    <span style="color: grey;font-size: 16px;">(作者)</span>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                        <div style="float: right;font-size: 15px;color: grey;margin-top: 16px;margin-right: 18px;">{{ sg_comment.time }}</div>
+                                        <div style="clear: both"></div>
+                                    </div>
+                                    <div id="comment_body" style="width: 93.5%; height: 100%;margin-left: 55px;">
+                                        <p style="font-size: 17px;margin-bottom: 2px;">
+                                            {% autoescape off %}
+                                                {{ sg_comment.content }}
+                                            {% endautoescape %}
+                                        </p>
+                                        <div id="pcomment_{{ sg_comment.id }}" style="width: 100%;height: 100%;display: none;">
+                                            {% for p_comment in comments %}
+                                                {% if p_comment.pid_id == sg_comment.id %}
+                                                        <div id="pcomment_head">
+                                                            <img src="{{  p_comment.user.avatar.url}}" width="50px;" height="50px;" style="float: left;border-radius: 25px;" >
+                                                            <div style="float: left; margin-left: 5px;" >
+                                                                <div style="font-size: 17px;margin-top: 15px;">
+                                                                    {{ p_comment.user.username }}
+                                                                    {% if p_comment.user.id == article.author.id %}
+                                                                        <span style="color: grey;font-size: 16px;">(作者)</span>
+                                                                    {% endif %}
+                                                                    <span style="color: grey;">&nbsp;&nbsp;回复&nbsp;&nbsp;{{ sg_comment.user.username }}</span>
+                                                                    {% if sg_comment.user.id == article.author.id %}
+                                                                        <span style="color: grey;font-size: 16px;">(作者)</span>
+                                                                    {% endif %}
+                                                                </div>
+                                                            </div>
+                                                            <div style="float: right;font-size: 15px;color: grey;margin-top: 16px;">{{ p_comment.time }}</div>
+                                                            <div style="clear: both"></div>
+                                                        </div>
+                                                        <div id="pcomment_body" style="width: 93.5%; height: 100%;margin-left: 55px;">
+                                                            <p style="font-size: 17px;margin-bottom: 2px;">{{ p_comment.content }}</p>
+                                                            <div id="pcomment_foot" style="font-size: 17px;color: grey;">
+                                                                <div id="comment_is_like_{{ p_comment.id }}" onclick="comment_is_like({{ p_comment.id }})" style="float: left;cursor: pointer;"><span class="glyphicon glyphicon-heart-empty"></span>&nbsp;&nbsp;&nbsp;{{ p_comment.like_num }}</div>
+                                                                <div id="comment_like_{{ p_comment.id }}" onclick="comment_no_like({{ p_comment.id }})" style="float: left;display: none;cursor: pointer;"><span class="glyphicon glyphicon-heart"></span>&nbsp;&nbsp;&nbsp;{{ p_comment.like_num|add:1 }}</div>
+                                                                {% if p_comment.user.id == user.id %}
+                                                                    <div  onclick="delete_comment()" style="float:right;color: grey;"><a href="{% url 'delete_comment' p_comment.id %}" style="text-decoration: none;color: grey;"><span class="glyphicon glyphicon-remove"></span>&nbsp;&nbsp;删除</a></div>
+                                                                {% endif %}
+                                                                <div style="clear: both"></div>
+                                                            </div>
+                                                        </div>
+                                                    <hr style="margin-top: 5px;margin-bottom: 5px;">
+                                                {% endif %}
+                                            {% endfor %}
+                                                <form action="{% url 'pcomment' sg_comment.id user.id %}" method="post" style="width: 100%">
+                                                    {% csrf_token %}
+                                                    {% if request.session.is_active %}
+                                                        <img src="{{ user.avatar.url }}" width="50px;" height="50px;" style="float: left;border-radius: 25px;" >
+                                                        <input style="outline:none;width: 81%;height: 40px;margin-top: 5px;float: left;font-size: 16px;padding-left: 10px;" name="pcomment" placeholder="回复&nbsp;{{ sg_comment.user.username }}&nbsp;..." >
+                                                        <button type="submit" style="float: left;height: 40px;width: 12.6%;border-width: 0;background-color: #0074ff;margin-top: 5px;"><span style="font-weight: bold;color: white;">评论</span></button>
+                                                    {% else %}
+                                                        <img src="{% static 'img/avatar/default.png' %}" width="50px;" height="50px;" style="float: left;border-radius: 25px;" >
+                                                        <input style="outline:none;width: 81%;height: 40px;margin-top: 5px;float: left;font-size: 16px;padding-left: 10px;" name="pcomment" placeholder="回复&nbsp;{{ sg_comment.user.username }}&nbsp;..." >
+                                                        <button type="submit" style="float: left;height: 40px;width: 12.6%;border-width: 0;background-color: #0074ff;margin-top: 5px;"><span style="font-weight: bold;color: white;"><a href="{% url 'login' %}" style="color: white;text-decoration: none;">评论</a></span></button>
+                                                    {% endif %}
+                                                </form>
+                                        </div>
+                                        <div style="clear: both"></div>
+                                        <div id="comment_foot" style="font-size: 17px;color: grey;">
+                                            <div id="comment_is_like_{{ sg_comment.id }}" onclick="comment_is_like({{ sg_comment.id }})" style="float: left;cursor: pointer;"><span class="glyphicon glyphicon-heart-empty"></span>&nbsp;&nbsp;&nbsp;{{ sg_comment.like_num }}</div>
+                                            <div id="comment_like_{{ sg_comment.id }}" onclick="comment_no_like({{ sg_comment.id }})" style="float: left;display: none;cursor: pointer;"><span class="glyphicon glyphicon-heart"></span>&nbsp;&nbsp;&nbsp;{{ sg_comment.like_num|add:1 }}</div>
+                                            <div onclick="show_pcomment({{ sg_comment.id }})" style="float: left;margin-left: 50px;cursor: pointer;"><span class="glyphicon glyphicon-list"></span>&nbsp;&nbsp;&nbsp;{{ sg_comment.comment_num }}</div>
+                                            <div onclick="show_pcomment({{ sg_comment.id }})" style="float: left;margin-left: 50px;cursor: pointer;"><span class="glyphicon glyphicon-edit"></span>&nbsp;&nbsp;&nbsp;回复</div>
+                                            {% if sg_comment.user.id == user.id %}
+                                                <div  onclick="delete_comment()" style="float:right;color: grey;"><a href="{% url 'delete_comment' sg_comment.id %}" style="text-decoration: none;color: grey;"><span class="glyphicon glyphicon-remove"></span>&nbsp;&nbsp;删除</a></div>
+                                            {% endif %}
+                                            <div style="clear: both"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <hr style="margin-top: 5px;margin-bottom: 5px;">
+                            {% endif %}
+                        {% endfor %}
+                        <div style="text-align: center;">
+                            <nav aria-label="Page navigation" style="margin: 0 auto;height: 40px;">
+                                <ul class="pagination">
+                                    <li>
+                                        {% if comments.has_previous %}
+                                            <a href="?page={{ comments.previous_page_number }}" aria-label="Previous" style="width: 80px;">
+                                                <span aria-hidden="true">«</span>
+                                            </a>
+                                        {% else %}
+                                            <a aria-label="Previous" style="cursor: pointer;width: 80px;">
+                                                <span aria-hidden="true" style="color: grey;">«</span>
+                                            </a>
+                                        {% endif %}
+                                    </li>
+                                    <li><a style="width: 100px;">{{ comments.number }}/{{ comments.paginator.num_pages }}</a></li>
+                                    <li>
+                                        {% if comments.has_next %}
+                                            <a href="?page={{ comments.next_page_number }}" aria-label="Next" style="width: 80px;">
+                                                <span aria-hidden="true">»</span>
+                                            </a>
+                                        {% else %}
+                                            <a aria-label="Next" style="width: 80px;cursor: pointer;color: grey;">
+                                                <span aria-hidden="true">»</span>
+                                            </a>
+                                        {% endif %}
+                                    </li>
+                              </ul>
+                            </nav>
+                        </div>
+                        <hr>
+                    </div>
+                {% else %}
+                    <div style="width:100%;text-align: center;color: grey;margin-top: 20px;margin-bottom: 50px;font-size: 16px;">快来抢沙发吧~(*ΦωΦ*)</div>
+                {% endif %}
+                <!-- 评论框 -->
+                <form action="{% url 'comment_article' article.id request.session.user_id %}" method="post">
+                    {% csrf_token %}
+                    <hr style="margin-bottom: 0;">
+                    {% if request.session.is_active %}
+                        <button type="submit" style="float: right;height: 45px;width: 12.2%;border-width: 0;background-color: #0074ff;"><span style="font-weight: bold;color: white;">评论</span></button>
+                    {% else %}
+                        <button style="float: right;height: 45px;width: 12.2%;border-width: 0;background-color: #0074ff;"><span style="font-weight: bold;color: white;"><a href="{% url 'login' %}" style="color: white;text-decoration: none;">评论</a></span></button>
+                    {% endif %}
+                    <div style="max-width:800px;margin-left: 0;">
+                        <!--demo-->
+                        <div style="text-align:left;">
+                            <!-- <div id="divDemo" style="font-size: 20px"></div>  -->
+                            <div id="editor" style="font-size: 19px;">
+                            </div>
+                            <textarea id="html" name="html" style="display:none;"></textarea>
+                            <textarea id="text" name="text" style="display:none;"></textarea>
+                        </div>
+                    </div>
+                </form>
+                <div style="clear: both"></div>
+                <hr style="margin-bottom: 100px;">
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block JS %}
+    <!-- 评论排序 -->
+    <script>
+        {% if request.session.comment_sort == 1 %}
+            $('#comment_time').show();
+        {% else %}
+            $('#comment_hot').show();
+        {% endif %}
+    </script>
+    <!-- 显示子评论 -->
+    <script>
+        var p_flag = 1;
+        var to_position;
+        function show_pcomment(sg_comment_id) {
+            var id = sg_comment_id;
+            var p_id = '#pcomment_' + id.toString();
+            if(p_flag % 2 == 0){
+                 $(p_id).hide();
+                 p_flag += 1;
+            }else {
+                $(p_id).show();
+                p_flag += 1;
+                to_position = sg_comment_id;
+            }
+        }
+        {% if request.session.to_position_comment_id %}
+            var comment_id = {{ request.session.to_position_comment_id }};
+            var comment_tag = '#comment_' + comment_id.toString();
+            var pcomment_tag = '#pcomment_' + comment_id.toString();
+            window.location.hash = comment_tag;
+            $(pcomment_tag).show();
+            p_flag = 2;
+        {% endif %}
+    </script>
+    <!-- 跳转到评论区 -->
+    <script>
+        {% if request.session.to_position %}
+            window.location.hash = "#to_position";
+        {% endif %}
+    </script>
+    <!-- 点赞 -->
+    <script>
+        function is_like(article_id){
+            var x = $(document).scrollLeft();
+            var y = $(document).scrollTop();
+            var id = article_id;
+            var is_like_id = '#is_like_' + id.toString();
+            var like_id = 'like_' + id.toString();
+            $(is_like_id).hide();
+            $.post("/is_like/", {'article_id':id, 'like':'is_like', csrfmiddlewaretoken: '{{ csrf_token }}'}, function (data) {
+                document.getElementById(like_id).style.display = 'initial';
+                if((x || y) && (x > 0 || y > 0)){
+                    window.scroll(x,y);
+                }
+            })
+        }
+        function no_like(article_id){
+            var x = $(document).scrollLeft();
+            var y = $(document).scrollTop();
+            var id = article_id;
+            var is_like_id = 'is_like_' + id.toString();
+            var like_id = '#like_' + id.toString();
+            $(like_id).hide();
+            $.post("/is_like/", {'article_id':id, 'like':'no_like', csrfmiddlewaretoken: '{{ csrf_token }}'}, function (data) {
+                document.getElementById(is_like_id).style.display = 'initial';
+                 if((x || y) && (x > 0 || y > 0)){
+                    window.scroll(x,y);
+                 }
+            })
+        }
+        function comment_is_like(sg_comment_id){
+            var x = $(document).scrollLeft();
+            var y = $(document).scrollTop();
+            var id = sg_comment_id;
+            var is_like_id = '#comment_is_like_' + id.toString();
+            var like_id = 'comment_like_' + id.toString();
+            $(is_like_id).hide();
+            $.post("/comment_is_like/", {'sg_comment_id':id, 'like':'is_like', csrfmiddlewaretoken: '{{ csrf_token }}'}, function (data) {
+                document.getElementById(like_id).style.display = 'initial';
+                if((x || y) && (x > 0 || y > 0)){
+                    window.scroll(x,y);
+                }
+            })
+        }
+        function comment_no_like(sg_comment_id){
+            var x = $(document).scrollLeft();
+            var y = $(document).scrollTop();
+            var id = sg_comment_id;
+            var is_like_id = 'comment_is_like_' + id.toString();
+            var like_id = '#comment_like_' + id.toString();
+            $(like_id).hide();
+            $.post("/comment_is_like/", {'sg_comment_id':id, 'like':'no_like', csrfmiddlewaretoken: '{{ csrf_token }}'}, function (data) {
+                document.getElementById(is_like_id).style.display = 'initial';
+                 if((x || y) && (x > 0 || y > 0)){
+                    window.scroll(x,y);
+                 }
+            })
+        }
+        function delete_comment() {
+            alert('确定删除该评论吗|ू･ω･` )');
+        }
+    </script>
+<script type="text/javascript" src="{% static 'js/wangEditor.min.js' %}"></script>
+<script type="text/javascript" src="{% static 'js/wangEditor.js' %}"></script>
+<!-- 配置WangEditor -->
+<script type="text/javascript">
+	var E = window.wangEditor;
+	var editor = new E('#editor');
+	var $html = $('#html');
+	var $text = $('#text');
+	editor.customConfig.onchange = function (html) {
+        // 监控变化，同步更新到 textarea
+        $html.val(html);
+        $text.val(editor.txt.text());
+    };
+    //配置onfocus函数之后，用户点击富文本区域会触发onfocus函数执行。
+    editor.customConfig.onfocus = () => {
+        console.log('focus');
+    };
+    editor.customConfig.menus = [
+        'emoticon',  // 表情
+        'image',  // 插入图片
+    ];
+    editor.create();
+    editor.cmd.do('insertHTML', '{{ text }}');
+    // 初始化 textarea 的值
+    $html.val(editor.txt.html());
+    $text.val(editor.txt.text());
+
+	editor.customConfig.uploadImgServer = '/admin.php/Upload/wang_editor';  // 上传图片到服务器
+	// 3M
+	editor.customConfig.uploadImgMaxSize = 3 * 1024 * 1024;
+	// 限制一次最多上传 5 张图片
+	editor.customConfig.uploadImgMaxLength = 1;
+	// 自定义文件名
+	editor.customConfig.uploadFileName = 'editor_img';
+	// 将 timeout 时间改为 3s
+	editor.customConfig.uploadImgTimeout = 5000;
+
+	editor.customConfig.uploadImgHooks = {
+	    before: function (xhr, editor, files) {
+	        // 图片上传之前触发
+	        // xhr 是 XMLHttpRequst 对象，editor 是编辑器对象，files 是选择的图片文件
+
+	        // 如果返回的结果是 {prevent: true, msg: 'xxxx'} 则表示用户放弃上传
+	        // return {
+	        //     prevent: true,
+	        //     msg: '放弃上传'
+	        // }
+	        // alert("前奏");
+	    },
+	    success: function (xhr, editor, result) {
+	        // 图片上传并返回结果，图片插入成功之后触发
+	        // xhr 是 XMLHttpRequst 对象，editor 是编辑器对象，result 是服务器端返回的结果
+	        // var url = result.data.url;
+	        // alert(JSON.stringify(url));
+	        // editor.txt.append(url);
+	        // alert("成功");
+	    },
+	    fail: function (xhr, editor, result) {
+	        // 图片上传并返回结果，但图片插入错误时触发
+	        // xhr 是 XMLHttpRequst 对象，editor 是编辑器对象，result 是服务器端返回的结果
+	        alert("失败");
+	    },
+	    error: function (xhr, editor) {
+	        // 图片上传出错时触发
+	        // xhr 是 XMLHttpRequst 对象，editor 是编辑器对象
+	        // alert("错误");
+	    },
+	    // 如果服务器端返回的不是 {errno:0, data: [...]} 这种格式，可使用该配置
+	    // （但是，服务器端返回的必须是一个 JSON 格式字符串！！！否则会报错）
+	    customInsert: function (insertImg, result, editor) {
+	        // 图片上传并返回结果，自定义插入图片的事件（而不是编辑器自动插入图片！！！）
+	        // insertImg 是插入图片的函数，editor 是编辑器对象，result 是服务器端返回的结果
+	        // 举例：假如上传图片成功后，服务器端返回的是 {url:'....'} 这种格式，即可这样插入图片：
+	        var url = result.data[0];
+	        insertImg(url);
+	        // result 必须是一个 JSON 格式字符串！！！否则报错
+	    }
+	};
+
+	editor.txt.html(content);
+	var content = editor.txt.html();
+</script>
+{% endblock %}

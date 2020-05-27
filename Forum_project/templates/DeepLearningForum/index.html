@@ -1,0 +1,402 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load my_filiters %}
+
+{% block title %}
+    <title>DeepLearning</title>
+{% endblock %}
+
+{% block CSS %}
+<style>
+    #a_title{
+        color: black;
+    }
+    #a_title:hover{
+        color: #1E9FFF;
+    }
+    #a_desc{
+        color: grey;
+    }
+    #a_desc:hover{
+        color: #393D49;
+        text-decoration: none;
+    }
+    #article_body a:hover{
+        text-decoration: none;
+    }
+    #follow_btn{
+        background-color: white;
+        border-color: #1E9FFF;
+        border-width: 1px;
+        color: #1E9FFF;
+        border-radius: 8px;
+        height: 35px;
+        width: 80px;
+        font-size: 16px;
+    }
+    #followed_btn{
+        height: 35px;
+        width: 80px;
+        background-color: grey;
+        color: white;
+        border-width: 0;
+        border-radius: 8px;
+        font-size: 16px;
+    }
+    #follow_btn:hover{
+        border-width: 0;
+        background-color: #1E9FFF;
+        color: white;
+        font-size: 16px;
+    }
+</style>
+{% endblock %}
+
+{% block main %}
+    <div class="container" >
+        <div class="row" style="margin-top: 50px;">
+            <div class="col-md-7 " style="height: 100%;min-height:706px;background-color: white;margin-right: 10px;">
+                <ol class="breadcrumb" style="height: 50px;font-size: 19px;background-color: white;margin-bottom: 0;margin-top: 10px;">
+                    <li><a href="{% url 'index' %}">主页</a></li>
+                    {% if request.session.category_id %}
+                        <li style="font-size: 16px;"><a href="{% url 'category' show_category.id %}">{{ show_category.name }}</a></li>
+                        {% if request.session.tag_id %}
+                            <li class="active" style="font-size: 16px;">{{ tag.name }}</li>
+                        {% else %}
+                            <li><a href="#"></a></li>
+                        {% endif %}
+                    {% else %}
+                        {% if request.session.tag_id %}
+                            <li class="active" style="font-size: 16px;">{{ tag.name }}</li>
+                        {% else %}
+                            <li><a href="#"></a></li>
+                        {% endif %}
+                    {% endif %}
+                </ol>
+                <hr style="margin-top: 0;">
+                {% if request.session.have_articles %}
+                    {% for article in articles %}
+                        <div id="article">
+                            <div id="article_head">
+                                <a href="{% url 'personal_show' article.author.id %}" style="color: black;">
+                                    <img src="{{ article.author.avatar.url }}" width="50px;" height="50px;" style="float: left;margin-left: 20px;border-radius: 25px;" >
+                                    <div style="float: left; margin-left: 15px;" >
+                                        <div style="font-weight: bold;font-size: 18px;">{{ article.author.username }}</div>
+                                        <p style="color: gray;margin-top: 0;">{{ article.author.desc }}</p>
+                                    </div>
+                                </a>
+                                {% if request.session.is_active %}
+                                    {% if article.author.id == user.id %}
+                                    {% else %}
+                                        {% if follows|is_follow:article.author %}
+                                            <div style="float: right;margin-top: 2px;">
+                                                <button id="followed_btn" onclick="unfollow_user({{ user.id }}, {{ article.author.id }})">已关注</button>
+                                            </div>
+                                        {% else %}
+                                            <div style="float: right;margin-top: 2px;">
+                                                <button id="follow_btn" onclick="follow_user({{ user.id }}, {{ article.author.id }})"><span class="glyphicon glyphicon-plus"></span>关注</button>
+                                            </div>
+                                        {% endif %}
+                                    {% endif %}
+                                {% endif %}
+                                <div style="clear: both"></div>
+                            </div>
+                            <div id="article_body" style="margin-top: 5px;margin-left: 20px;">
+                                <p style="font-size: 18px;font-weight: bold;width: 100%;margin-bottom: 0;"><a href="{% url 'article' article.id %}" id="a_title">{{ article.title }}</a></p>
+                                <div style="color: gray;margin-bottom: 5px;">{{ article.time|date:"Y年m月d日" }}</div>
+                                <p style="width: 100%;">
+                                    {% for s_tag in article.tag.all %}
+                                        <a href="{% url 'tag' s_tag.id %}">
+                                            <button  class="btn btn-default" style="background-color: #0084ff;height: 25px;padding-top: 2px;border-radius: 15px;"><div style="color: white;font-weight: bold;">{{ s_tag.name }}</div></button>
+                                        </a>
+                                    {% endfor %}
+                                </p>
+                                <p style="color: gray;width: 100%;"><a href="{% url 'article' article.id %}" id="a_desc">{{ article.desc }}</a></p>
+                            </div>
+                            <div id="article_foot" style="margin-top: 3px;margin-left: 20px;">
+                                {% if request.session.is_active %}
+                                    <div style="float:right;color: grey;margin-right: 10px;font-size: 16px;"><a href="{% url 'article_comments' article.id %}" style="text-decoration: none;color: grey;"><span class="glyphicon glyphicon-list"></span>&nbsp;&nbsp;{{ article.comment_num }}&nbsp;评论</a></div>
+                                    <div id="is_like_{{ article.id }}" onclick="is_like({{ article.id }})" style="font-size: 16px;float:right;color: grey;margin-right: 20px;cursor: pointer;"><span class="glyphicon glyphicon-heart-empty"></span>&nbsp;&nbsp;<span id="like_num">{{ article.like_num }}</span>&nbsp;喜欢</div>
+                                    <div id="like_{{ article.id }}" onclick="no_like({{ article.id }})" style="font-size: 16px;float:right;color: grey;margin-right: 20px;display: none;cursor: pointer;"><span class="glyphicon glyphicon-heart"></span>&nbsp;&nbsp;<span id="like_num">{{ article.like_num|add:1 }}</span>&nbsp;喜欢</div>
+                                    {% if article.author.id == user.id %}
+                                        <div  onclick="delete_article()" style="font-size: 16px;float:left;color: grey;"><a href="{% url 'delete_article' article.id %}" style="text-decoration: none;color: grey;"><span class="glyphicon glyphicon-remove"></span>&nbsp;&nbsp;删除</a></div>
+                                    {% endif %}
+                                {% else %}
+                                    <div style="float:right;color: grey;margin-right: 10px;"><a href="{% url 'login' %}" style="text-decoration: none;color: grey;"><span class="glyphicon glyphicon-list"></span>&nbsp;&nbsp;{{ article.comment_num }}&nbsp;评论</a></div>
+                                    <div style="float:right;color: grey;margin-right: 20px;"><a href="{% url 'login' %}" style="text-decoration: none;color: grey;"><span class="glyphicon glyphicon-heart-empty"></span>&nbsp;&nbsp;{{ article.like_num }}&nbsp;喜欢</a></div>
+                                {% endif %}
+                                <div style="clear: both"></div>
+                            </div>
+                            <div style="clear: both"></div>
+                            <hr style="margin-top: 10px;margin-bottom: 10px;">
+                        </div>
+                    {% endfor %}
+                    <div style="text-align: center;">
+                        <nav aria-label="Page navigation" style="margin: 0 auto;">
+                            <ul class="pagination">
+                                <li>
+                                    {% if articles.has_previous %}
+                                        <a href="?page={{ articles.previous_page_number }}" aria-label="Previous" style="width: 80px;">
+                                            <span aria-hidden="true">«</span>
+                                        </a>
+                                    {% else %}
+                                        <a aria-label="Previous" style="cursor: pointer;width: 80px;">
+                                            <span aria-hidden="true" style="color: grey;">«</span>
+                                        </a>
+                                    {% endif %}
+                                </li>
+                                <li><a style="width: 100px;">{{ articles.number }}/{{ articles.paginator.num_pages }}</a></li>
+                                <li>
+                                    {% if articles.has_next %}
+                                        <a href="?page={{ articles.next_page_number }}" aria-label="Next" style="width: 80px;">
+                                            <span aria-hidden="true">»</span>
+                                        </a>
+                                    {% else %}
+                                        <a aria-label="Next" style="width: 80px;cursor: pointer;color: grey;">
+                                            <span aria-hidden="true">»</span>
+                                        </a>
+                                    {% endif %}
+                                </li>
+                          </ul>
+                        </nav>
+                    </div>
+                {% else %}
+                    <div style="text-align: center;color: grey;margin-top: 80px;">还没有相关文章哦ᕦ(･ㅂ･)ᕤ,快去发布吧~</div>
+                {% endif %}
+
+
+            </div>
+            <div class="col-md-4" style="height: 100%;background-color: white;">
+                <div style="text-align: center;font-size: 20px;margin-top: 10px;font-weight: bold;color: #66afe9;">标签云</div>
+                <div id='tag-cloud'></div>
+                <hr style="margin-top: 0;">
+                <ul id="myTab" class="nav nav-tabs" style="margin-top: 10px;">
+                    <li class="active">
+                        <a href="#high_like" data-toggle="tab">
+                             <div style="font-size: 18px;"><b>高赞文章</b></div>
+                        </a>
+                    </li>
+                    <li><a href="#hot_comment" data-toggle="tab"><div style="font-size: 18px;"><b>热评文章</b></div></a></li>
+                    <li><a href="#recommend" data-toggle="tab"><div style="font-size: 18px;"><b>推荐</b></div></a></li>
+                </ul>
+                <div id="myTabContent" class="tab-content">
+                    <div class="tab-pane fade in active" id="high_like">
+                        <ol class="breadcrumb" style="height: 20px;font-size: 16px;background-color: white;">
+                            <li><a href="{% url 'index' %}">主页</a></li>
+                            {% if request.session.category_id %}
+                                <li style="font-size: 16px;"><a href="{% url 'category' show_category.id %}">{{ show_category.name }}</a></li>
+                                {% if request.session.tag_id %}
+                                    <li class="active" style="font-size: 16px;">{{ tag.name }}</li>
+                                {% else %}
+                                    <li><a href="#"></a></li>
+                                {% endif %}
+                            {% else %}
+                                {% if request.session.tag_id %}
+                                    <li class="active" style="font-size: 16px;">{{ tag.name }}</li>
+                                {% else %}
+                                    <li><a href="#"></a></li>
+                                {% endif %}
+                            {% endif %}
+                        </ol>
+                        <hr style="margin-top: 0; margin-bottom: 0;">
+                        {% for highlike_article in highlike_articles %}
+                            <div id="article">
+                                <div id="article_body" style="margin-top: 5px;margin-left: 10px;">
+                                    <p style="font-size: 18px;font-weight: bold;width: 100%;margin-bottom: 0;"><a href="{% url 'article' highlike_article.id %}" id="a_title">{{ highlike_article.title }}</a></p>
+                                    <div style="color: gray;margin-bottom: 5px;">{{ highlike_article.time|date:"Y年m月d日" }}</div>
+                                    <p style="color: gray;width: 100%;"><a href="{% url 'article' highlike_article.id %}" id="a_desc">{{ highlike_article.desc|slice:"45" }}...</a></p>
+                                </div>
+                                <div id="article_foot" style="margin-top: 3px;margin-left: 10px;float: right;">
+                                        <div style="float:right;color: grey;margin-right: 10px;font-size: 16px;"><span class="glyphicon glyphicon-list"></span>&nbsp;&nbsp;{{ highlike_article.comment_num }}&nbsp;评论</div>
+                                        <div style="font-size: 16px;float:right;color: grey;margin-right: 20px;"><span class="glyphicon glyphicon-heart-empty"></span>&nbsp;&nbsp;<span id="like_num">{{ highlike_article.like_num }}</span>&nbsp;喜欢</div>
+                                </div>
+                                <div style="clear: both"></div>
+                                <hr style="margin-top: 10px;margin-bottom: 10px;">
+                            </div>
+                        {% endfor %}
+                    </div>
+                    <div class="tab-pane fade" id="hot_comment">
+                        <ol class="breadcrumb" style="height: 20px;font-size: 16px;background-color: white;">
+                            <li><a href="{% url 'index' %}">主页</a></li>
+                            {% if request.session.category_id %}
+                                <li style="font-size: 16px;"><a href="{% url 'category' show_category.id %}">{{ show_category.name }}</a></li>
+                                {% if request.session.tag_id %}
+                                    <li class="active" style="font-size: 16px;">{{ tag.name }}</li>
+                                {% else %}
+                                    <li><a href="#"></a></li>
+                                {% endif %}
+                            {% else %}
+                                {% if request.session.tag_id %}
+                                    <li class="active" style="font-size: 16px;">{{ tag.name }}</li>
+                                {% else %}
+                                    <li><a href="#"></a></li>
+                                {% endif %}
+                            {% endif %}
+                        </ol>
+                        <hr style="margin-top: 0; margin-bottom: 0;">
+                        {% for hot_article in hot_articles %}
+                            <div id="article">
+                                <div id="article_body" style="margin-top: 5px;margin-left: 10px;">
+                                    <p style="font-size: 18px;font-weight: bold;width: 100%;margin-bottom: 0;"><a href="{% url 'article' hot_article.id %}" id="a_title">{{ hot_article.title }}</a></p>
+                                    <div style="color: gray;margin-bottom: 5px;">{{ hot_article.time|date:"Y年m月d日" }}</div>
+                                    <p style="color: gray;width: 100%;"><a href="{% url 'article' hot_article.id %}" id="a_desc">{{ hot_article.desc|slice:"45" }}...</a></p>
+                                </div>
+                                <div id="article_foot" style="margin-top: 3px;margin-left: 10px;float: right;">
+                                        <div style="float:right;color: grey;margin-right: 10px;font-size: 16px;"><span class="glyphicon glyphicon-list"></span>&nbsp;&nbsp;{{ hot_article.comment_num }}&nbsp;评论</div>
+                                        <div style="font-size: 16px;float:right;color: grey;margin-right: 20px;"><span class="glyphicon glyphicon-heart-empty"></span>&nbsp;&nbsp;<span id="like_num">{{ hot_article.like_num }}</span>&nbsp;喜欢</div>
+                                </div>
+                                <div style="clear: both"></div>
+                                <hr style="margin-top: 10px;margin-bottom: 10px;">
+                            </div>
+                        {% endfor %}
+                    </div>
+                    <div class="tab-pane fade" id="recommend">
+                        <ol class="breadcrumb" style="height: 20px;font-size: 16px;background-color: white;">
+                            <li><a href="{% url 'index' %}">主页</a></li>
+                            {% if request.session.category_id %}
+                                <li style="font-size: 16px;"><a href="{% url 'category' show_category.id %}">{{ show_category.name }}</a></li>
+                                {% if request.session.tag_id %}
+                                    <li class="active" style="font-size: 16px;">{{ tag.name }}</li>
+                                {% else %}
+                                    <li><a href="#"></a></li>
+                                {% endif %}
+                            {% else %}
+                                {% if request.session.tag_id %}
+                                    <li class="active" style="font-size: 16px;">{{ tag.name }}</li>
+                                {% else %}
+                                    <li><a href="#"></a></li>
+                                {% endif %}
+                            {% endif %}
+                        </ol>
+                        <hr style="margin-top: 0; margin-bottom: 0;">
+                        {% for recommend_article in recommend_articles %}
+                            <div id="article">
+                                <div id="article_body" style="margin-top: 5px;margin-left: 10px;">
+                                    <p style="font-size: 18px;font-weight: bold;width: 100%;margin-bottom: 0;"><a href="{% url 'article' recommend_article.id %}" id="a_title">{{ recommend_article.title }}</a></p>
+                                    <div style="color: gray;margin-bottom: 5px;">{{ recommend_article.time|date:"Y年m月d日" }}</div>
+                                    <p style="color: gray;width: 100%;"><a href="{% url 'article' recommend_article.id %}" id="a_desc">{{ recommend_article.desc|slice:"45" }}...</a></p>
+                                </div>
+                                <div id="article_foot" style="margin-top: 3px;margin-left: 10px;float: right;">
+                                        <div style="float:right;color: grey;margin-right: 10px;font-size: 16px;"><span class="glyphicon glyphicon-list"></span>&nbsp;&nbsp;{{ recommend_article.comment_num }}&nbsp;评论</div>
+                                        <div style="font-size: 16px;float:right;color: grey;margin-right: 20px;"><span class="glyphicon glyphicon-heart-empty"></span>&nbsp;&nbsp;<span id="like_num">{{ recommend_article.like_num }}</span>&nbsp;喜欢</div>
+                                </div>
+                                <div style="clear: both"></div>
+                                <hr style="margin-top: 10px;margin-bottom: 10px;">
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div style="display: initial"></div>
+{% endblock %}
+
+{% block JS %}
+    <script>
+        //点赞
+        function is_like(article_id){
+            var x = $(document).scrollLeft();
+            var y = $(document).scrollTop();
+            var id = article_id;
+            var is_like_id = '#is_like_' + id.toString();
+            var like_id = 'like_' + id.toString();
+            $(is_like_id).hide();
+            $.post("/is_like/", {'article_id':id, 'like':'is_like', csrfmiddlewaretoken: '{{ csrf_token }}'}, function (data) {
+                document.getElementById(like_id).style.display = 'initial';
+                if((x || y) && (x > 0 || y > 0)){
+                    window.scroll(x,y);
+                }
+            })
+        }
+        function no_like(article_id){
+            var x = $(document).scrollLeft();
+            var y = $(document).scrollTop();
+            var id = article_id;
+            var is_like_id = 'is_like_' + id.toString();
+            var like_id = '#like_' + id.toString();
+            $(like_id).hide();
+            $.post("/is_like/", {'article_id':id, 'like':'no_like', csrfmiddlewaretoken: '{{ csrf_token }}'}, function (data) {
+                document.getElementById(is_like_id).style.display = 'initial';
+                 if((x || y) && (x > 0 || y > 0)){
+                    window.scroll(x,y);
+                 }
+            })
+        }
+        function delete_article() {
+            alert('确定删除吗？|ू･ω･` )');
+        }
+        //页面回滚
+        $(window).scroll(function () {
+                if($(document).scrollTop()!=0){
+                    sessionStorage.setItem("offsetTop", $(window).scrollTop());
+                }
+            });
+        {% if request.session.to_position %}
+            window.onload = function () {
+                var offset = sessionStorage.getItem("offsetTop");
+                $(document).scrollTop(offset);
+            };
+        {% endif %}
+        //关注
+        function follow_user(follower_id, followed_id) {
+            var x = $(document).scrollLeft();
+            var y = $(document).scrollTop();
+            $.post("/follow_user/", {'follower_id':follower_id, 'followed_id': followed_id, 'is_follow':'follow', csrfmiddlewaretoken: '{{ csrf_token }}'}, function (data) {
+                window.location.reload();
+                if((x || y) && (x > 0 || y > 0)){
+                    window.scroll(x,y);
+                 }
+            })
+        }
+        function unfollow_user(follower_id, followed_id) {
+            var x = $(document).scrollLeft();
+            var y = $(document).scrollTop();
+            $.post("/follow_user/", {'follower_id':follower_id, 'followed_id': followed_id, 'is_follow':'unfollow', csrfmiddlewaretoken: '{{ csrf_token }}'}, function (data) {
+                window.location.reload();
+                if((x || y) && (x > 0 || y > 0)){
+                    window.scroll(x,y);
+                 }
+            })
+        }
+    </script>
+    <!-- 标签云 -->
+    <script src="{% static 'js/jquery.svg3dtagcloud.min.js' %}"></script>
+    <script>
+    	$( document ).ready( function() {
+            var entries = [
+                {% for show_tag in tags %}
+                    { label: '{{ show_tag.name }}', url: '{% url 'tag' show_tag.id %}', target: '_top' },
+                {% endfor %}
+            ];
+
+            var settings = {
+
+                entries: entries,
+                width: 370,
+                height: 320,
+                radius: '80%',
+                radiusMin: 75,
+                bgDraw: true,
+                bgColor: 'white',
+                opacityOver: 1.00,
+                opacityOut: 0.05,
+                opacitySpeed: 6,
+                fov: 800,
+                speed: 0.4,
+                fontFamily: 'Oswald, Arial, sans-serif',
+                fontSize: '18',
+                fontColor: 'grey',
+                fontWeight: 'normal',//bold
+                fontStyle: 'normal',//italic
+                fontStretch: 'normal',//wider, narrower, ultra-condensed, extra-condensed, condensed, semi-condensed, semi-expanded, expanded, extra-expanded, ultra-expanded
+                fontToUpperCase: true
+            };
+
+            //var svg3DTagCloud = new SVG3DTagCloud( document.getElementById( 'holder'  ), settings );
+            $( '#tag-cloud' ).svg3DTagCloud( settings );
+
+		} );
+
+    </script>
+{% endblock %}

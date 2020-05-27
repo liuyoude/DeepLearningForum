@@ -1,0 +1,108 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width,initial-scale=1">
+	<title>Login</title>
+	<link rel="stylesheet" href="{% static 'css/auth.css' %}">
+    <link href="{% static 'css/bootstrap.min.css' %}" rel="stylesheet">
+    <style>
+        body{
+            background: url("{% static 'img/system/background.png' %}") no-repeat center fixed;
+            width:100%;
+            height:100%;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- 警告栏 -->
+    {% if fail %}
+    <div class="alert alert-danger alert-dismissable">
+	    <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
+	    {{ msg }}
+    </div>
+    {% endif %}
+
+	<div class="lowin lowin-blue" style="margin-top: 30px;">
+		<div class="lowin-brand" style="padding-top: 25px;">
+			<img src="{% static 'img/loog/deep.png' %}" alt="logo">
+		</div>
+		<div class="lowin-wrapper">
+			<div class="lowin-box lowin-login">
+				<div class="lowin-box-inner">
+					<form action="{% url 'login' %}" method="post">
+                        {% csrf_token %}
+						<p>登录 (。-`ω´-) </p>
+						<div class="lowin-group">
+							<label>邮箱</label>
+							{{ res_form.email }}
+						</div>
+						<div class="lowin-group password-group">
+							<label>密码 <a href="#" class="forgot-link">忘记密码？(•́へ•́╬)</a></label>
+							{{ res_form.password }}
+						</div>
+						<button class="lowin-btn login-btn" type="submit">
+							登录
+						</button>
+
+						<div class="text-foot">
+							还没有账号？Σ(ﾟдﾟlll) <a href="" class="register-link">注册</a>
+						</div>
+					</form>
+				</div>
+			</div>
+
+			<div class="lowin-box lowin-register">
+				<div class="lowin-box-inner">
+					<form action="{% url 'register' %}" method="post" AUTOCOMPLETE="OFF">
+                        {% csrf_token %}
+						<p>创建你的账号吧(๑╹ヮ╹๑)ﾉ</p>
+						<div class="lowin-group">
+							<label>用户名</label>
+                            {{ res_form.username }}
+						</div>
+						<div class="lowin-group">
+							<label>邮箱</label>
+							{{ res_form.email }}
+						</div>
+						<div class="lowin-group">
+							<label>密码</label>
+							{{ res_form.password }}
+						</div>
+                        <div class="lowin-group">
+							<label>重复密码</label>
+							{{ res_form.repassword }}
+						</div>
+                        <input type="hidden" name="source_url" value="{{ request.META.HTTP_REFERER }}">
+						<button class="lowin-btn" type="submit">
+							注册
+						</button>
+
+						<div class="text-foot">
+							已经有账号了？!!!∑(ﾟДﾟノ)ノ <a href="{% url 'login' %}" class="login-link">登录</a>
+						</div>
+					</form>
+				</div>
+			</div>
+		</div>
+	
+		<footer class="lowin-footer">
+
+		</footer>
+	</div>
+
+
+</body>
+<script type="text/javascript" src="{% static 'js/jquery-3.0.0.min.js' %}"></script>
+<script type="text/javascript" src="{% static 'js/bootstrap.min.js' %}"></script>
+<script src="{% static 'js/auth.js' %}"></script>
+	<script>
+		Auth.init({
+			login_url: '#login',
+			forgot_url: '#forgot'
+		});
+	</script>
+</html>

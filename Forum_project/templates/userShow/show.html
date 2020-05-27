@@ -1,0 +1,480 @@
+{% load static %}
+{% load my_filiters %}
+<!DOCTYPE html>
+<html lang="zh-cmn-Hans">
+<head>
+    <meta charset="UTF-8">
+    <title>个人主页</title>
+    <link href="{% static 'css/bootstrap.min.css' %}" rel="stylesheet">
+    <link href="{% static 'css/fileinput.css' %}" media="all" rel="stylesheet" type="text/css" />
+    <style>
+        body{
+            background: url("{% static 'img/system/background.png' %}") no-repeat center fixed;
+            width:100%;
+            height:100%;
+        }
+        #a_title{
+        color: black;
+        }
+        #a_title:hover{
+            color: #1E9FFF;
+        }
+        #a_desc{
+            color: grey;
+        }
+        #a_desc:hover{
+            color: #393D49;
+            text-decoration: none;
+        }
+        #article_body a:hover{
+            text-decoration: none;
+        }
+        #follow_btn{
+            background-color: white;
+            border-color: #1E9FFF;
+            border-width: 1px;
+            color: #1E9FFF;
+            height: 40px;
+            width: 100%;
+            font-size: 16px;
+        }
+        #followed_btn{
+            height: 40px;
+            width: 100%;
+            background-color: grey;
+            color: white;
+            border-width: 0;
+            font-size: 16px;
+        }
+        #follow_btn:hover{
+            border-width: 0;
+            background-color: #1E9FFF;
+            color: white;
+            font-size: 16px;
+        }
+        .to_blue p:hover{
+            color: #1E9FFF!important;
+        }
+        .form-group img{
+            width: 100%!important;
+            height: 300px!important;
+        }
+        .my_input{
+            width: 80%;
+            text-align: center;
+            height: 40px;
+            font-size: 18px;
+            color: grey;
+            border-top-width: 0;
+            border-left-width: 0;
+            border-right-width: 0;
+            outline: none;
+            margin-left: 10%;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- 警告栏 -->
+    {% if msg %}
+    <div class="alert alert-danger alert-dismissable" style="position: fixed;top:50px;width: 100%;z-index: 999;text-align: center;">
+	    <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
+	    {{ msg }}
+    </div>
+    {% endif %}
+
+    <!-- 导航栏 -->
+    <nav class="navbar navbar-default navbar-fixed-top" style="background-color: white;">
+        <div class="container" style="width: 95%;margin-left: 30px;">
+            <!-- Brand and toggle get grouped for better mobile display -->
+            <div class="navbar-header">
+                <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1" aria-expanded="false">
+                    <span class="sr-only">Toggle navigation</span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>
+            <a href="{% url 'index' %}" style="margin-left: 100px;margin-right: 10px;">
+                <img src="{% static 'img/loog/deep.png' %}" alt="Brand" style="width: 80px;height: 47px;padding-top: 3px;">
+            </a>
+            </div>
+            <!-- Collect the nav links, forms, and other content for toggling -->
+            <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+                <ul class="nav navbar-nav">
+                    <li style="margin-left: 10px;margin-right: 10px;"><a href="{% url 'personal_show' user.id %}"><div style="font-size: 20px;"><b>个人主页</b></div> <span class="sr-only">(current)</span></a></li>
+                </ul>
+                <!-- 右侧状态栏 -->
+                <ul class="nav navbar-nav navbar-right">
+                    {% if request.session.is_active %}
+                        <li><a href="{% url 'write' %}"><div style="font-size: 16px;"><span class="glyphicon glyphicon-leaf"></span>写文章</div></a></li>
+                        <li class="dropdown">
+                            <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false" style="padding-top: 5px;padding-bottom: 1px;">
+                                <img src="{{ myself.avatar.url }}" alt="头像" style="width: 40px;height: 40px;margin-right: 8px;border-radius: 5px;">{{ myself.username|slice:"4" }}{% if myself.username|str_len %}...{% endif %}
+                                <span class="caret"></span>
+                            </a>
+                            <ul class="dropdown-menu">
+                                <li>
+                                    <a href="{% url 'personal_show' myself.id %}">
+                                        <span class="glyphicon glyphicon-user" aria-hidden="true" style="margin-right: 40px;"></span>个人主页
+                                    </a>
+                                </li>
+                                <li role="separator" class="divider"></li>
+                                <li>
+                                    <a href="{% url 'logout' %}">
+                                        <span class="glyphicon glyphicon-log-out" aria-hidden="true" style="margin-right: 38px;"></span>
+                                        注销
+                                    </a>
+                                </li>
+                            </ul>
+                        </li>
+                    {% else %}
+                        <li class="dropdown">
+                            <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false" style="padding-top: 5px;padding-bottom: 1px;">
+                                <img src="{% static 'img/avatar/default.png' %}" alt="头像" style="width: 40px;height: 40px;margin-right: 8px;">游客
+                                <span class="caret"></span>
+                            </a>
+                            <ul class="dropdown-menu">
+                                <li>
+                                    <a href="{% url 'login' %}">
+                                        <span class="glyphicon glyphicon-retweet" aria-hidden="true" style="margin-right: 40px;"></span>登录
+                                    </a>
+                                </li>
+                                <li role="separator" class="divider"></li>
+                                <li>
+                                    <a href="{% url 'register' %}">
+                                        <span class="glyphicon glyphicon-hdd" aria-hidden="true" style="margin-right: 38px;"></span>
+                                        注册
+                                    </a>
+                                </li>
+                            </ul>
+                        </li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div><!-- /.container-fluid -->
+    </nav>
+    <!-- body -->
+    <div class="container" >
+        <div class="row" style="margin-top: 50px;">
+            <div class="col-md-3" style="background-color: white;min-height: 400px;padding: 0;text-align: center;height: 100%;">
+                <div style="width: 100%;background-color: #1E9FFF;height: 130px;"></div>
+                <div style="position: absolute;top: 80px;left: 95px;">
+                    <img src="{{ user.avatar.url }}" alt="{{ user.username }}" width="100px" height="100px" style="border-radius: 50px;">
+                </div>
+                <p style="margin-top: 60px;font-weight: bold;font-size: 18px;">{{ user.username }}</p>
+                <p style="color: grey;margin-top: 15px;">{{ user.desc }}</p>
+                <hr style="margin-bottom: 5px;">
+                <div onclick="followed()" class="to_blue" style="cursor: pointer;">
+                    <p style="color: grey;font-size: 20px;">关注了</p>
+                </div>
+                <p style="font-size: 18px;">{{ user.followed_num }}</p>
+                <hr style="margin-bottom: 5px;margin-top: 5px;">
+                <div onclick="follower()" class="to_blue" style="cursor: pointer;">
+                    <p style="color: grey;font-size: 20px;">关注者</p>
+                </div>
+                <p style="font-size: 18px;">{{ user.follower_num }}</p>
+                <hr style="margin-bottom: 3px;margin-top: 5px;">
+                {% if request.session.is_active %}
+                    {% if request.session.user_id == user.id %}
+                        <button onclick="setInfo()" style="width: 100%;height: 40px;background-color: #1E9FFF;color: white;font-size: 18px;border-width: 0;">修改个人资料</button>
+                    {% else %}
+                        {% if follows|is_follow:user %}
+                            <div style="width: 100%">
+                                <button id="followed_btn" onclick="unfollow_user({{ myself.id }}, {{ user.id }})">已关注</button>
+                            </div>
+                        {% else %}
+                            <div>
+                                <button id="follow_btn" onclick="follow_user({{ myself.id }}, {{ user.id }})"><span class="glyphicon glyphicon-plus"></span>关注</button>
+                            </div>
+                        {% endif %}
+                    {% endif %}
+                {% else %}
+                {% endif %}
+            </div>
+            <div class="col-md-8" style="background-color: white;min-height: 700px;margin-left: 20px;">
+                <!-- 文章页面 -->
+                <div id="personal_articles">
+                    <ol class="breadcrumb" style="height: 50px;font-size: 19px;background-color: white;margin-bottom: 0;margin-top: 10px;">
+                        <li><a href="{% url 'personal_show' user.id %}">个人主页</a></li>
+                        <li><a href="#"></a></li>
+                    </ol>
+                    <hr style="margin-top: 0;">
+                    {% if request.session.have_articles %}
+                        {% for article in articles %}
+                            <div id="article">
+                                <div id="article_body" style="margin-top: 5px;margin-left: 20px;">
+                                    <p style="font-size: 18px;font-weight: bold;width: 100%;margin-bottom: 0;"><a href="{% url 'article' article.id %}" id="a_title">{{ article.title }}</a></p>
+                                    <div style="color: gray;margin-bottom: 5px;">{{ article.time|date:"Y年m月d日" }}</div>
+                                    <p style="width: 100%;">
+                                        {% for s_tag in article.tag.all %}
+                                            <a href="{% url 'tag' s_tag.id %}">
+                                                <button  class="btn btn-default" style="background-color: #0084ff;height: 25px;padding-top: 2px;border-radius: 15px;"><div style="color: white;font-weight: bold;">{{ s_tag.name }}</div></button>
+                                            </a>
+                                        {% endfor %}
+                                    </p>
+                                    <p style="color: gray;width: 100%;"><a href="{% url 'article' article.id %}" id="a_desc">{{ article.desc }}</a></p>
+                                </div>
+                                <div id="article_foot" style="margin-top: 3px;margin-left: 20px;">
+                                    {% if request.session.is_active %}
+                                        <div style="float:right;color: grey;margin-right: 10px;font-size: 16px;"><a href="{% url 'article_comments' article.id %}" style="text-decoration: none;color: grey;"><span class="glyphicon glyphicon-list"></span>&nbsp;&nbsp;{{ article.comment_num }}&nbsp;评论</a></div>
+                                        <div id="is_like_{{ article.id }}" onclick="is_like({{ article.id }})" style="font-size: 16px;float:right;color: grey;margin-right: 20px;cursor: pointer;"><span class="glyphicon glyphicon-heart-empty"></span>&nbsp;&nbsp;<span id="like_num">{{ article.like_num }}</span>&nbsp;喜欢</div>
+                                        <div id="like_{{ article.id }}" onclick="no_like({{ article.id }})" style="font-size: 16px;float:right;color: grey;margin-right: 20px;display: none;cursor: pointer;"><span class="glyphicon glyphicon-heart"></span>&nbsp;&nbsp;<span id="like_num">{{ article.like_num|add:1 }}</span>&nbsp;喜欢</div>
+                                        {% if article.author.id == request.session.user_id %}
+                                            <div  onclick="delete_article()" style="font-size: 16px;float:left;color: grey;"><a href="{% url 'delete_article' article.id %}" style="text-decoration: none;color: grey;"><span class="glyphicon glyphicon-remove"></span>&nbsp;&nbsp;删除</a></div>
+                                        {% endif %}
+                                    {% else %}
+                                        <div style="float:right;color: grey;margin-right: 10px;"><a href="{% url 'login' %}" style="text-decoration: none;color: grey;"><span class="glyphicon glyphicon-list"></span>&nbsp;&nbsp;{{ article.comment_num }}&nbsp;评论</a></div>
+                                        <div style="float:right;color: grey;margin-right: 20px;"><a href="{% url 'login' %}" style="text-decoration: none;color: grey;"><span class="glyphicon glyphicon-heart-empty"></span>&nbsp;&nbsp;{{ article.like_num }}&nbsp;喜欢</a></div>
+                                    {% endif %}
+                                    <div style="clear: both"></div>
+                                </div>
+                                <div style="clear: both"></div>
+                                <hr style="margin-top: 10px;margin-bottom: 10px;">
+                            </div>
+                        {% endfor %}
+                        <div style="text-align: center;">
+                            <nav aria-label="Page navigation" style="margin: 0 auto;">
+                                <ul class="pagination">
+                                    <li>
+                                        {% if articles.has_previous %}
+                                            <a href="?page={{ articles.previous_page_number }}" aria-label="Previous" style="width: 80px;">
+                                                <span aria-hidden="true">«</span>
+                                            </a>
+                                        {% else %}
+                                            <a aria-label="Previous" style="cursor: pointer;width: 80px;">
+                                                <span aria-hidden="true" style="color: grey;">«</span>
+                                            </a>
+                                        {% endif %}
+                                    </li>
+                                    <li><a style="width: 100px;">{{ articles.number }}/{{ articles.paginator.num_pages }}</a></li>
+                                    <li>
+                                        {% if articles.has_next %}
+                                            <a href="?page={{ articles.next_page_number }}" aria-label="Next" style="width: 80px;">
+                                                <span aria-hidden="true">»</span>
+                                            </a>
+                                        {% else %}
+                                            <a aria-label="Next" style="width: 80px;cursor: pointer;color: grey;">
+                                                <span aria-hidden="true">»</span>
+                                            </a>
+                                        {% endif %}
+                                    </li>
+                              </ul>
+                            </nav>
+                        </div>
+                        {% else %}
+                            <div style="text-align: center;color: grey;margin-top: 80px;">还没有相关文章哦ᕦ(･ㅂ･)ᕤ,快去发布吧~</div>
+                        {% endif %}
+                </div>
+                <!-- 关注了页面 -->
+                <div id="followed_index" style="display: none">
+                    <ol class="breadcrumb" style="height: 50px;font-size: 19px;background-color: white;margin-bottom: 0;margin-top: 10px;">
+                        <li><a href="{% url 'personal_show' user.id %}">个人主页</a></li>
+                        <li style="color: grey;font-size: 17px;">关注了</li>
+                    </ol>
+                    <hr style="margin-top: 0;">
+                    {% if user.followed_num == 0 %}
+                        <div style="text-align: center;color: grey;margin-top: 30px;">还没有关注其他人哦(▼ヘ▼#)</div>
+                    {% else %}
+                        {% for sg_followed in followed %}
+                            <a href="{% url 'personal_show' sg_followed.followed_id.id %}"><img src="{{ sg_followed.followed_id.avatar.url }}" width="70px;" height="70px;" style="float: left;margin-left: 20px;border-radius: 25px;" alt="{{ sg_followed.followed_id.username }}"></a>
+                            <div style="float: left; margin-left: 15px;" >
+                                <div style="font-weight: bold;font-size: 18px;"> <a href="{% url 'personal_show' sg_followed.followed_id.id %}" style="text-decoration: none;color: black;">{{ sg_followed.followed_id.username }}</a></div>
+                                <p style="color: gray;margin-top: 0;margin-bottom: 0;">{{ sg_followed.followed_id.desc }}</p>
+                                <p style="color: grey;font-size: 17px;margin-top: 0;">关注了&nbsp;{{ sg_followed.followed_id.followed_num }}&nbsp;&nbsp;&nbsp;&nbsp;{{ sg_followed.followed_id.follower_num }}&nbsp;关注者</p>
+                            </div>
+                            <div style="float: right;margin-top: 16px;">
+                                {% if request.session.is_active %}
+                                    {% if sg_followed.followed_id.id == myself.id %}
+                                    {% else %}
+                                        {% if follows|is_follow:sg_followed.followed_id %}
+                                            <div style="float: right;margin-top: 2px;">
+                                                <button id="followed_btn" onclick="unfollow_user({{ myself.id }}, {{ sg_followed.followed_id.id }})" style="border-radius: 8px;width: 80px;">已关注</button>
+                                            </div>
+                                        {% else %}
+                                            <div style="float: right;margin-top: 2px;">
+                                                <button id="follow_btn" onclick="follow_user({{ myself.id }}, {{ sg_followed.followed_id.id }})" style="border-radius: 8px;width: 80px;"><span class="glyphicon glyphicon-plus"></span>关注</button>
+                                            </div>
+                                        {% endif %}
+                                    {% endif %}
+                                {% endif %}
+                            </div>
+                            <div style="clear: both;"></div>
+                            <hr style="margin-top: 5px;margin-bottom: 5px;">
+                        {% endfor %}
+                    {% endif %}
+                </div>
+                <div id="follower_index" style="display: none;">
+                    <ol class="breadcrumb" style="height: 50px;font-size: 19px;background-color: white;margin-bottom: 0;margin-top: 10px;">
+                        <li><a href="{% url 'personal_show' user.id %}">个人主页</a></li>
+                        <li style="color: grey;font-size: 17px;">关注者</li>
+                    </ol>
+                    <hr style="margin-top: 0;">
+                    {% if user.follower_num == 0 %}
+                        <div style="text-align: center;color: grey;margin-top: 30px;">暂无关注者哦(▼ヘ▼#)</div>
+                    {% else %}
+                        {% for sg_follower in follower %}
+                            <a href="{% url 'personal_show' sg_follower.follower_id.id %}"><img src="{{ sg_follower.follower_id.avatar.url }}" width="70px;" height="70px;" style="float: left;margin-left: 20px;border-radius: 25px;" ></a>
+                            <div style="float: left; margin-left: 15px;" >
+                                <div style="font-weight: bold;font-size: 18px;"><a href="{% url 'personal_show' sg_follower.follower_id.id %}" style="text-decoration: none;color: black;">{{ sg_follower.follower_id.username }}</a></div>
+                                <p style="color: gray;margin-top: 0;margin-bottom: 0;">{{ sg_follower.follower_id.desc }}</p>
+                                <p style="color: grey;font-size: 17px;margin-top: 0;">关注了&nbsp;{{ sg_follower.follower_id.followed_num }}&nbsp;&nbsp;&nbsp;&nbsp;{{ sg_follower.follower_id.follower_num }}&nbsp;关注者</p>
+                            </div>
+                            <div style="float: right;margin-top: 16px;">
+                                {% if request.session.is_active %}
+                                    {% if sg_follower.follower_id.id == myself.id %}
+                                    {% else %}
+                                        {% if follows|is_follow:sg_follower.follower_id %}
+                                            <div style="float: right;margin-top: 2px;">
+                                                <button id="followed_btn" onclick="unfollow_user({{ myself.id }}, {{ sg_follower.follower_id.id }})" style="border-radius: 8px;width: 80px;">已关注</button>
+                                            </div>
+                                        {% else %}
+                                            <div style="float: right;margin-top: 2px;">
+                                                <button id="follow_btn" onclick="follow_user({{ myself.id }}, {{ sg_follower.follower_id.id }})" style="border-radius: 8px;width: 80px;"><span class="glyphicon glyphicon-plus"></span>关注</button>
+                                            </div>
+                                        {% endif %}
+                                    {% endif %}
+                                {% endif %}
+                            </div>
+                            <div style="clear: both;"></div>
+                            <hr style="margin-top: 5px;margin-bottom: 5px;">
+                        {% endfor %}
+                    {% endif %}
+                </div>
+                <div id="set_info" style="display: none;">
+                    <ol class="breadcrumb" style="height: 50px;font-size: 19px;background-color: white;margin-bottom: 0;margin-top: 10px;">
+                        <li><a href="{% url 'personal_show' user.id %}">个人主页</a></li>
+                        <li style="color: grey;font-size: 17px;">修改个人资料</li>
+                    </ol>
+                    <hr style="margin-top: 0;">
+                    <form enctype="multipart/form-data" action="{% url 'set_info' %}" method="post" AUTOCOMPLETE="OFF">
+                        {% csrf_token %}
+                        <p style="font-weight: bold;font-size: 20px;color: #393D49;width: 100%; text-align: center;">设置头像</p>
+                        <img id="old_img" src="{{ myself.avatar.url }}" alt="{{ myself.username }}" style="width: 48.5%;position: absolute;top: 120px;left: 200px;">
+                        <div id="load_img" class="form-group" style="width: 50%;margin: 0 auto;margin-top: 15px;" >
+                            <input onclick="set_avatar()" id="file-1" type="file" multiple class="file" data-overwrite-initial="false" data-min-file-count="1" name="new_img">
+                        </div>
+                        <p style="font-weight: bold;font-size: 20px;color: #393D49;width: 100%; text-align: center;margin-top: 10px;">简介</p>
+                        <input name="desc" class="my_input" placeholder="{{ myself.desc }}">
+                        <p style="font-weight: bold;font-size: 20px;color: #393D49;width: 100%; text-align: center;margin-top: 10px;">密码</p>
+                        <input name="password" class="my_input">
+                        <div style="width: 100%;text-align: center;margin-top: 20px;margin-bottom: 50px;"><button type="submit" style="background-color: #1E9FFF;width: 30%;height: 40px;color: white;font-size: 16px;font-weight: bold;border-width: 0;border-radius: 5px;">修改</button></div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+</body>
+<script type="text/javascript" src="{% static 'js/jquery-3.0.0.min.js' %}"></script>
+<script type="text/javascript" src="{% static 'js/bootstrap.min.js' %}"></script>
+<script type="text/javascript" src="{% static 'js/fileinput.js' %}" ></script>
+<script type="text/javascript" src="{% static 'js/fileinput_locale_zh.js' %}" ></script>
+<script>
+        //点赞
+    function is_like(article_id){
+        var x = $(document).scrollLeft();
+        var y = $(document).scrollTop();
+        var id = article_id;
+        var is_like_id = '#is_like_' + id.toString();
+        var like_id = 'like_' + id.toString();
+        $(is_like_id).hide();
+        $.post("/is_like/", {'article_id':id, 'like':'is_like', csrfmiddlewaretoken: '{{ csrf_token }}'}, function (data) {
+            document.getElementById(like_id).style.display = 'initial';
+            if((x || y) && (x > 0 || y > 0)){
+                window.scroll(x,y);
+            }
+        })
+    }
+    function no_like(article_id){
+        var x = $(document).scrollLeft();
+        var y = $(document).scrollTop();
+        var id = article_id;
+        var is_like_id = 'is_like_' + id.toString();
+        var like_id = '#like_' + id.toString();
+        $(like_id).hide();
+        $.post("/is_like/", {'article_id':id, 'like':'no_like', csrfmiddlewaretoken: '{{ csrf_token }}'}, function (data) {
+            document.getElementById(is_like_id).style.display = 'initial';
+             if((x || y) && (x > 0 || y > 0)){
+                window.scroll(x,y);
+             }
+        })
+    }
+    function delete_article() {
+        alert('确定删除吗？|ू･ω･` )');
+    }
+    //页面回滚
+    $(window).scroll(function () {
+            if($(document).scrollTop()!=0){
+                sessionStorage.setItem("offsetTop", $(window).scrollTop());
+            }
+        });
+    {% if request.session.to_position %}
+        window.onload = function () {
+            var offset = sessionStorage.getItem("offsetTop");
+            $(document).scrollTop(offset);
+        };
+    {% endif %}
+    {% if request.session.to_set %}
+        setInfo();
+        window.onload = function () {
+            var offset = sessionStorage.getItem("offsetTop");
+            $(document).scrollTop(offset);
+        };
+    {% endif %}
+    //关注
+    function follow_user(follower_id, followed_id) {
+        var x = $(document).scrollLeft();
+        var y = $(document).scrollTop();
+        $.post("/follow_user/", {'follower_id':follower_id, 'followed_id': followed_id, 'is_follow':'follow', csrfmiddlewaretoken: '{{ csrf_token }}'}, function (data) {
+            window.location.reload();
+            if((x || y) && (x > 0 || y > 0)){
+                window.scroll(x,y);
+             }
+        })
+    }
+    function unfollow_user(follower_id, followed_id) {
+        var x = $(document).scrollLeft();
+        var y = $(document).scrollTop();
+        $.post("/follow_user/", {'follower_id':follower_id, 'followed_id': followed_id, 'is_follow':'unfollow', csrfmiddlewaretoken: '{{ csrf_token }}'}, function (data) {
+            window.location.reload();
+            if((x || y) && (x > 0 || y > 0)){
+                window.scroll(x,y);
+             }
+        })
+    }
+    function followed() {
+        $('#personal_articles').hide();
+        $('#follower_index').hide();
+        $('#set_info').hide();
+        $('#followed_index').show();
+    }
+    function follower() {
+        $('#personal_articles').hide();
+        $('#followed_index').hide();
+        $('#set_info').hide();
+        $('#follower_index').show();
+    }
+    function setInfo() {
+        $('#personal_articles').hide();
+        $('#followed_index').hide();
+        $('#follower_index').hide();
+        $('#set_info').show();
+    }
+    function set_avatar(){
+        $('#old_img').hide();
+        $('#load_img').show();
+    }
+    $("#file-1").fileinput({
+        uploadUrl: '#', // you must set a valid URL here else you will get an error
+        allowedFileExtensions : ['jpg', 'png','gif'],
+        overwriteInitial: false,
+        maxFileSize: 3000,
+        maxFilesNum: 1,
+        //allowedFileTypes: ['image', 'video', 'flash'],
+        slugCallback: function(filename) {
+            return filename.replace('(', '_').replace(']', '_');
+        }
+	});
+</script>
+</html>

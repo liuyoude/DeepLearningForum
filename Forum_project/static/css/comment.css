@@ -1,0 +1,104 @@
+.Main {
+	width: 100%;
+	height: 100px;
+	margin: 0 auto;
+
+}
+.Input_Box {
+	width: 100%;
+	height: 113px;
+    bottom: 0;
+    right: 0;
+	border: 1px solid #ccc;
+	transition: border linear .2s, box-shadow linear .5s;
+	-moz-transition: border linear .2s, -moz-box-shadow linear .5s;
+	-webkit-transition: border linear .2s, -webkit-box-shadow linear .5s;
+	-moz-border-radius: 5px;
+	-webkit-border-radius: 5px;
+	border-radius: 5px;
+	background-color: #fff;
+	overflow: hidden;
+	position: absolute;
+	-moz-box-shadow: 0 0 5px #ccc;
+	-webkit-box-shadow: 0 0 5px #ccc;
+	box-shadow: 0 0 5px #ccc;
+}
+.Input_Box>textarea {
+	width: 100%;
+	height: 70px;
+	padding: 5px;
+	outline: none;
+	border: 0px solid #fff;
+	resize: none;
+	font: 16px "微软雅黑", Arial, Helvetica, sans-serif;
+	-moz-border-radius: 5px;
+	-webkit-border-radius: 5px;
+	border-radius: 5px;
+}
+.Input_Foot {
+	width: 100%;
+	height: 35px;
+	border-top: 1px solid #ccc;
+	background-color: #fff;
+	-moz-border-radius: 0 0 5px 5px;
+	-webkit-border-radius: 0 0 5px 5px;
+	border-radius: 0 0 5px 5px;
+	position: absolute;
+}
+.imgBtn:active {
+	margin-top: 9px;
+}
+.imgBtn:hover {
+	background-position: 0 -31px
+}
+.postBtn {
+    width: 90%;
+    background-color: #0084ff;
+	float: right;
+	font: 15px "微软雅黑", Arial, Helvetica, sans-serif;
+	color: white;
+    font-weight: bold;
+	padding: 9px 20px 7px 20px;
+    border-width: 0;
+	border-left: 1px solid #ccc;
+	cursor: pointer;
+	-moz-border-radius: 0 0 5px 0;
+	-webkit-border-radius: 0 0 5px 0;
+	border-radius: 0 0 5px 0;
+}
+.postBtn:hover {
+	color: white;
+    font-weight: bold;
+	background-color:  #0074ff;
+}
+.postBtn:active {
+	padding: 10px 20px 6px 20px;
+}
+.faceDiv {
+    padding-top: 56px;
+	width: 500px;
+	height: 120px;
+	border-top: 1px solid #ccc;
+	position: absolute;
+	background-color: #fff;
+	-moz-border-radius: 5px 5px 0 0;
+	-webkit-border-radius: 5px 5px 0 0;
+	border-radius: 5px 5px 0 0;
+}
+.faceDiv>img {
+	border: 1px solid #ccc;
+	float: left;
+	margin-left: -1px;
+	margin-top: -1px;
+	position: relative;
+	width: 24px;
+	height: 24px;
+	padding: 3px 3px 3px 3px;
+	cursor: pointer;
+}
+.faceDiv>img:hover {
+	background-color: #efefef;
+}
+.faceDiv>img:active {
+	padding: 4px 3px 2px 3px;
+}
